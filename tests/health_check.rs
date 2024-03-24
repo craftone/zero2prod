@@ -1,5 +1,8 @@
 use std::net::TcpListener;
 
+use sqlx::{Connection, PgConnection};
+use zero2prod::configurations::get_configuration;
+
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
@@ -30,6 +33,13 @@ fn spawn_app() -> String {
 async fn subscribe_returns_a_200_for_valid_form_data() {
     // Arrange
     let app_address = spawn_app();
+    let configuraion = get_configuration().expect("Failed to read configuration.");
+    let connect_string = configuraion.database.connection_string();
+    // The `Connection` trait MUST be in scope for us to invoke
+    // `PgConnection::connect` - it is not an inherent method of the struct!
+    let mut connection = PgConnection::connect(&connect_string)
+        .await
+        .expect("Failed to connect to Postgres.");
     let client = reqwest::Client::new();
 
     // Act
@@ -44,6 +54,14 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 
     // Assert
     assert_eq!(200, response.status().as_u16());
+
+    let saved = sqlx::query!("SELECT email, name FROM subscriptions",)
+        .fetch_one(&mut connection)
+        .await
+        .expect("Failed to fetch saved subscription.");
+
+    assert_eq!(saved.email, "ursula_le_guin@gmail.com");
+    assert_eq!(saved.name, "le guin");
 }
 
 #[tokio::test]
