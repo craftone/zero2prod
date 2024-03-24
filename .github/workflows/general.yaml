@@ -10,9 +10,8 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - run: pwd
-      - run: find .
-      - run: POSTGRES_PORT=5433 ./scripts/init_db.sh
+      - shell: bash
+        run: POSTGRES_PORT=5433 ./scripts/init_db.sh
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
