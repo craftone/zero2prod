@@ -10,11 +10,10 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - shell: bash
-        run: POSTGRES_PORT=5433 ./scripts/init_db.sh
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - run: POSTGRES_PORT=5433 ./scripts/init_db.sh
       - name: Run tests
         run: cargo test
 
