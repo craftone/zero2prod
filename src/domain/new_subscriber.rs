@@ -1,6 +1,8 @@
-use super::SubscriberName;
+use crate::routes::FormData;
+
+use super::{SubscriberEmail, SubscriberName};
 
 pub struct NewSubscriber {
-    pub email: String,
+    pub email: SubscriberEmail,
     pub name: SubscriberName,
 }
