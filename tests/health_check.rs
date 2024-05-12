@@ -1,11 +1,11 @@
 use std::net::TcpListener;
 
-use actix_web::test;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
+use url::Url;
 use uuid::Uuid;
 use zero2prod::{
     configurations::{get_configuration, DatabaseSettings},
-    email_client::{self, EmailClient},
+    email_client::EmailClient,
     telemetry::{get_subscriber, init_subscriber},
 };
 
@@ -35,15 +35,20 @@ async fn spawn_app() -> TestApp {
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{port}");
 
-    let mut configuration = get_configuration().expect("Failed to read configuration.");
+    let mut configuration = get_configuration().expect("Failed to read configuration");
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
 
     let sender_email = configuration
         .email_client
         .sender()
-        .expect("Invalid sender email address.");
-    let email_client = EmailClient::new(configuration.email_client.base_url, sender_email);
+        .expect("Invalid sender email address");
+    let base_url = Url::parse(&configuration.email_client.base_url).expect("Invalid base URL");
+    let email_client = EmailClient::new(
+        base_url,
+        sender_email,
+        configuration.email_client.authorization_token,
+    );
 
     let server = zero2prod::startup::run(listener, connection_pool.clone(), email_client)
         .expect("Failed to listen");

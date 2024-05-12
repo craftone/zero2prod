@@ -3,10 +3,7 @@ use sqlx::PgPool;
 use std::net::TcpListener;
 use tracing_actix_web::TracingLogger;
 
-use crate::{
-    email_client::{self, EmailClient},
-    routes,
-};
+use crate::{email_client::EmailClient, routes};
 
 pub fn run(
     listener: TcpListener,
